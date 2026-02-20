@@ -1,0 +1,26 @@
+{
+    "models": {
+        "jarvis": {
+            "default": {"ollama" : "gpt-oss:20b"},
+            "provider": {
+                "ollama": {
+                    "model": "gpt-oss:20b"
+                },
+                "google": {
+                    "model": "gemini-flash-latest"
+                }
+            }
+        },
+        "coder": {
+            "default": {"google" : "gemini-flash-latest"},
+            "provider": {
+                "ollama": {
+                    "model": "qwen3-coder:30b"
+                },
+                "google": {
+                    "model": "gemini-flash-latest"
+                }
+            }
+        }
+    }
+}
