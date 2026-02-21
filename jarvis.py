@@ -6,9 +6,6 @@ from langchain_core.messages import BaseMessage, HumanMessage, AIMessage, System
 from operator import add
 from langgraph.prebuilt import ToolNode
 from tools import tools
-import asyncio
-
-import os
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -72,15 +69,16 @@ graph.add_edge('tools', 'call_jarvis')
 
 jarvis_compiled = graph.compile()
 
-inputs = {
-    'messages': [
-        SystemMessage(content="You are Jarvis, a helpful assistant. If you are ask to code or asked about code -> use the 'call_coder' tool to call the expert coder model. Always try to use the tools if they are relevant to the question."), 
-        HumanMessage(content=input("Ask Jarvis: "))
-        ],
-    'errors': [],
-    'max_calls': 6,
-    'call_count': 0
-}
-resposta = jarvis_compiled.invoke(inputs)
+if __name__ == "__main__":
+    inputs = {
+        'messages': [
+            SystemMessage(content="You are Jarvis, a helpful assistant. If you are ask to code or asked about code -> use the 'call_coder' tool to call the expert coder model. Always try to use the tools if they are relevant to the question."), 
+            HumanMessage(content=input("Ask Jarvis: "))
+            ],
+        'errors': [],
+        'max_calls': 6,
+        'call_count': 0
+    }
+    resposta = jarvis_compiled.invoke(inputs)
 
-print(resposta['messages'][-1].content)
+    print(resposta['messages'][-1].content)

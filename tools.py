@@ -21,28 +21,28 @@ coder = ChatGoogleGenerativeAI(model="gemini-flash-latest")
 def add_numbers(a: int, b: int) -> int:
     '''Adds two numbers together.'''
 
-    print('Cridant es sumador')
+    print('Calling adder')
     return a + b
 
 @tool("get_Weather")
 def weather_api(location: str) -> str:
     '''Gets the current weather for a given location.'''
 
-    print('Cridant a l API del temps')
+    print('Calling weather API')
     return f"The current weather in {location} is night with a high of 15°C."
 
 @tool("get_location")
 def get_location() -> str:
     '''Returns the current location of the user.'''
 
-    print('Cridant a l API de la ubicació')
+    print('Calling location API')
     return "You are in Barcelona."
 
 @tool("call_coder")
 def call_coder(prompt: str) -> str:
     '''Calls the LLM expert coder.'''
 
-    print('Cridant al coder')
+    print('Calling coder')
 
     try:
         response = coder.invoke(prompt)
