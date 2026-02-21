@@ -74,7 +74,7 @@ jarvis_compiled = graph.compile()
 
 inputs = {
     'messages': [
-        SystemMessage(content="You are Jarvis, a helpful assistant. If you are ask to code, you will use the 'call_coder' tool to call the coder model. Always try to use the tools if they are relevant to the question."), 
+        SystemMessage(content="You are Jarvis, a helpful assistant. If you are ask to code or asked about code -> use the 'call_coder' tool to call the expert coder model. Always try to use the tools if they are relevant to the question."), 
         HumanMessage(content=input("Ask Jarvis: "))
         ],
     'errors': [],
