@@ -12,7 +12,10 @@ if "GOOGLE_API_KEY" not in os.environ:
     os.environ["GOOGLE_API_KEY"] = getpass.getpass("Enter your Google AI API key: ")
 
 
-gemini = ChatGoogleGenerativeAI(model="gemini-flash-latest")
+coder = ChatGoogleGenerativeAI(model="gemini-flash-latest")
+#coder = ChatOllama(model="gpt-oss:20b")
+#coder = ChatOllama(model="qwen3-coder:30b")
+
 
 @tool("add_numbers")
 def add_numbers(a: int, b: int) -> int:
@@ -39,11 +42,10 @@ def get_location() -> str:
 def call_coder(prompt: str) -> str:
     '''Calls the LLM expert coder.'''
 
-    print('Intentant cridar al coder')
+    print('Cridant al coder')
 
     try:
-        print('Cridant al coder')
-        response = gemini.invoke(prompt)
+        response = coder.invoke(prompt)
         return response.content
         
     except Exception as e:

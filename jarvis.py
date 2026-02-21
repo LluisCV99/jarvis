@@ -14,10 +14,10 @@ class JarvisState(TypedDict):
     call_count: int
 
 #ollama = ChatOllama(model="qwen3-coder:30b")
-ollama = ChatOllama(model="gpt-oss:20b")
+jarvis = ChatOllama(model="gpt-oss:20b")
 
 
-llm_with_tools = ollama.bind_tools(tools.tools)
+llm_with_tools = jarvis.bind_tools(tools)
 
 def call_jarvis(state: JarvisState) -> dict:
     '''Calls the LLM with the current messages and returns the response.'''
@@ -46,12 +46,12 @@ def router(state: JarvisState) -> str:
         print("Max call count reached, ending.")
         return 'END'
     if state['messages'][-1].tool_calls:
-        print("Router: El model vol fer servir una eina. Anant a 'tools'...")
+        print("Router: The models wants to use a tool. Going to 'tools'...")
         return 'tools'
     return 'END'
 
 
-tool_node = ToolNode(tools.tools)
+tool_node = ToolNode(tools)
 
 graph = StateGraph(JarvisState)
 graph.add_node('call_jarvis', call_jarvis)
@@ -64,17 +64,17 @@ graph.set_entry_point('call_jarvis')
 graph.add_edge('tools', 'call_jarvis')
 
 
-jarvis = graph.compile()
+jarvis_compiled = graph.compile()
 
 inputs = {
     'messages': [
-        SystemMessage(content="You are Jarvis, a helpful assistant."), 
-        HumanMessage(content=input("Pregunta a Jarvis? "))
+        SystemMessage(content="You are Jarvis, a helpful assistant. If you are ask to code, you will use the 'call_coder' tool to call the coder model. Always try to use the tools if they are relevant to the question."), 
+        HumanMessage(content=input("Ask Jarvis: "))
         ],
     'errors': [],
     'max_calls': 6,
     'call_count': 0
 }
-resposta = jarvis.invoke(inputs)
+resposta = jarvis_compiled.invoke(inputs)
 
 print(resposta['messages'][-1].content)
