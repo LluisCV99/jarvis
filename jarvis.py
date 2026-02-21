@@ -6,6 +6,12 @@ from langchain_core.messages import BaseMessage, HumanMessage, AIMessage, System
 from operator import add
 from langgraph.prebuilt import ToolNode
 from tools import tools
+import asyncio
+
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 class JarvisState(TypedDict):
     messages: Annotated[Sequence[BaseMessage], add_messages]
