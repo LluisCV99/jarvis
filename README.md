@@ -2,6 +2,14 @@
 
 A learning experiment exploring the design and orchestration of **multi-agent systems** using multiple Large Language Models (LLMs). Jarvis demonstrates how to build agent architectures where different specialized LLMs collaborate, delegate tasks, and make decisions through a graph-based workflow.
 
+## Roadmap
+
+> Planned features and improvements:
+
+- [ ] **Model switching from UI/CLI** — Commands to change active models directly from the Chat UI or the terminal without editing `conf.json`
+- [ ] **Long-term memory** — Persistent conversation history and context across sessions
+- [ ] **Camera access** — Integrate camera input so Jarvis can process visual information
+
 ## Project Goals
 
 This project is an **educational experiment** designed to:
@@ -22,7 +30,7 @@ This project is an **educational experiment** designed to:
   
 - **Tool System**: A suite of tools that agents can invoke:
   - `add_numbers`: Basic arithmetic operations
-  - `get_weather`: Retrieves weather information
+  - `get_Weather`: Retrieves weather information for a given location
   - `get_location`: Gets user location
   - `call_coder`: Delegates coding tasks to a specialized LLM (Google Gemini)
 
@@ -31,11 +39,16 @@ This project is an **educational experiment** designed to:
   - Routes to END if max iterations reached
   - Enables agentic loops and iterative problem-solving
 
-- **LangGraph State Machine**: Manages the agent execution flow with typed state containing:
+- **LangGraph State Machine**: Manages the agent execution flow with typed state (`JarvisState`) containing:
   - `messages`: Conversation history
   - `errors`: Error tracking
   - `call_count`: Iteration counter
-  - `max_calls`: Execution limit
+  - `max_calls`: Execution limit (default: 6)
+
+- **Configuration Module (`conf.py`)**: A dedicated module for managing agent configurations with support for:
+  - Reading active model configs (`get_jarvis`, `get_coder`)
+  - Hot-swapping models at runtime (`update_model`)
+  - Configuration backup and restore (`create_backup`, `restore_backup`)
 
 ### Multi-LLM Strategy
 
@@ -48,7 +61,7 @@ Input
   ├─→ [Tool: add_numbers]
   │   └─→ Returns result
   │
-  ├─→ [Tool: get_weather]
+  ├─→ [Tool: get_Weather]
   │   └─→ Returns weather data
   │
   ├─→ [Tool: call_coder - Specialized]
@@ -60,13 +73,30 @@ Input
 
 The key learning: **Specialized LLMs for specialized tasks** - Ollama handles orchestration and decision-making, while Google Gemini is used for code generation.
 
+## Project Structure
+
+```
+jarvis/
+├── jarvis.py          # Main agent: graph definition, state, entry point
+├── app.py             # Flask server for the web chat UI
+├── tools.py           # Tool definitions (add_numbers, weather, location, call_coder)
+├── conf.py            # Configuration management (read/update/backup models)
+├── conf.json          # Agent configuration file (providers, models, defaults)
+├── test_conf.py       # Test suite for the configuration module
+├── templates/
+│   └── chat.html      # Web chat interface
+├── requirements.txt   # Python dependencies
+├── .env               # Environment variables (API keys, not tracked in git)
+└── .gitignore
+```
+
 ## Getting Started
 
 ### Prerequisites
 
 - Python 3.10+
 - Ollama running locally with models installed (`gpt-oss:20b` or similar)
-- Google API key for Gemini (optional, if using the `call_coder` tool)
+- Google API key for Gemini (for the `call_coder` tool)
 
 ### Installation
 
@@ -82,64 +112,104 @@ source lang_env/bin/activate  # On macOS/Linux
 pip install -r requirements.txt
 ```
 
-The project uses:
-- `langchain` and `langchain-core`: LLM framework
-- `langgraph`: State machine and agent orchestration
-- `langchain-ollama`: Ollama integration
-- `langchain-google-genai`: Google Gemini integration
-
 3. Set up environment variables:
-
-
-### Create a .env file with your API key for example with the gemini api:
 ```bash
+# Create a .env file with your API key
 echo "GOOGLE_API_KEY=your_key_here" > .env
 ```
 
+### Dependencies
+
+| Package | Purpose |
+|---|---|
+| `langchain` / `langchain-core` | LLM framework and abstractions |
+| `langgraph` | State machine and agent orchestration |
+| `langchain-ollama` | Ollama integration for local models |
+| `langchain-google-genai` | Google Gemini integration |
+| `ollama` | Ollama client library |
+| `google-genai` | Google AI client library |
+| `python-dotenv` | Environment variable management |
+| `langsmith` | LLM observability and tracing |
+| `aiohttp` / `httpx` | Async HTTP clients |
+| `flask` | Web server for the chat UI |
+
 ### Configuration
 
-Edit `conf.json` to configure your LLM providers:
+Agent models are managed through `conf.json`. Each agent has a **default** config, an **active** config (can be changed at runtime), and a list of **available** models per provider:
 
 ```json
 {
-    "models": {
+    "agents": {
         "jarvis": {
-            "default": {"ollama" : "gpt-oss:20b"},
-            "provider": {
-                "ollama": {
-                    "model": "gpt-oss:20b"
-                },
-                "google": {
-                    "model": "gemini-flash-latest"
-                }
+            "default": { "provider": "ollama", "model": "gpt-oss:20b" },
+            "active": { "provider": "ollama", "model": "gpt-oss:20b" },
+            "available": {
+                "ollama": ["gpt-oss:20b", "gpt-oss:120b"],
+                "google": ["gemini-flash-latest", "gemini-pro"]
             }
         },
         "coder": {
-            "default": {"google" : "gemini-flash-latest"},
-            "provider": {
-                "ollama": {
-                    "model": "qwen3-coder:30b"
-                },
-                "google": {
-                    "model": "gemini-flash-latest"
-                }
+            "default": { "provider": "google", "model": "gemini-flash-latest" },
+            "active": { "provider": "google", "model": "gemini-flash-latest" },
+            "available": {
+                "ollama": ["qwen3-coder:30b", "deepseek-coder:33b"],
+                "google": ["gemini-flash-latest"]
             }
         }
     }
 }
 ```
 
-## Learning Outcomes
+Use `conf.py` to manage models programmatically:
 
-By working through this project, you'll understand:
+```python
+import conf
 
-1. **Agent Orchestration**: How to structure multi-agent systems with clear roles
-2. **Tool Binding**: How LLMs invoke tools and pass structured data
-3. **State Management**: Maintaining conversation context and agent state
-4. **Routing Logic**: Decision trees and agentic flow control
-5. **Multi-Model Coordination**: Delegating tasks between different LLMs
-6. **Error Handling**: Graceful failures in distributed agent systems
-7. **Iteration Limits**: Preventing infinite loops in agentic reasoning
+# Get the active model for each agent
+jarvis_config = conf.get_jarvis()   # {"provider": "ollama", "model": "gpt-oss:20b"}
+coder_config = conf.get_coder()     # {"provider": "google", "model": "gemini-flash-latest"}
+
+# Swap a model at runtime
+conf.update_model("jarvis", "google", "gemini-pro")
+
+# Backup and restore configuration
+conf.create_backup()
+conf.restore_backup()
+```
+
+### Running
+
+**CLI mode** (original terminal interface):
+```bash
+python jarvis.py
+```
+
+**Chat UI** (web interface):
+```bash
+python app.py
+```
+Then open [http://localhost:5000](http://localhost:5000) in your browser.
+
+## Chat UI
+
+The web interface (`app.py` + `templates/chat.html`) provides a browser-based chat experience with Jarvis:
+
+- **Dark glassmorphism theme** with smooth animations and a typing indicator
+- **Markdown rendering** — Jarvis responses are parsed and displayed as rich HTML using [marked.js](https://github.com/markedjs/marked), supporting headings, lists, tables, blockquotes, bold/italic, links, and more
+- **Syntax-highlighted code blocks** via [highlight.js](https://highlightjs.org/) — fenced code blocks with language tags (e.g. ` ```python `) are automatically highlighted
+- **Inline code styling** — backtick-wrapped code gets a subtle background
+- **Responsive layout** — adapts to mobile screens
+- **Send on Enter** — press Enter to send, Shift+Enter for newlines
+
+## Testing
+
+Run the configuration test suite:
+
+```bash
+python test_conf.py
+```
+
+This validates `get_jarvis`, `get_coder`, `update_model`, and `backup/restore` functionality using temporary test files.
 
 ## How It Works
 
@@ -150,6 +220,19 @@ By working through this project, you'll understand:
 5. **Iteration**: Router decides whether to loop (invoke agent again) or terminate
 6. **Output**: Final response synthesized from the agent's reasoning
 
+## Learning Outcomes
+
+By working through this project, you'll understand:
+
+1. **Agent Orchestration**: How to structure multi-agent systems with clear roles
+2. **Tool Binding**: How LLMs invoke tools and pass structured data
+3. **State Management**: Maintaining conversation context and agent state
+4. **Routing Logic**: Decision trees and agentic flow control
+5. **Multi-Model Coordination**: Delegating tasks between different LLMs
+6. **Configuration Management**: Hot-swapping models and managing agent configs
+7. **Error Handling**: Graceful failures in distributed agent systems
+8. **Iteration Limits**: Preventing infinite loops in agentic reasoning
+
 ## Key Concepts Explored
 
 - **Agent Autonomy**: Agents make decisions without explicit human direction
@@ -157,6 +240,7 @@ By working through this project, you'll understand:
 - **Specialized Agents**: Different models for different domains (reasoning vs. coding)
 - **Fallback Mechanisms**: Error handling and retry logic
 - **Bounded Reasoning**: Iteration limits to ensure termination
+- **Runtime Configurability**: Swapping models without code changes
 
 ## Extensibility
 
@@ -171,15 +255,16 @@ def my_tool(param: str) -> str:
 ```
 
 2. Updating `jarvis.py` to use new tools
-3. Swapping models in `conf.json`
-4. Adding new specialized agents
+3. Adding new models to `conf.json` under `available`
+4. Swapping active models via `conf.update_model()`
+5. Adding new specialized agents
 
 ## Notes
 
 - This is an **experiment and learning project**, not production-ready code
 - Ensure Ollama is running before executing
 - Check console output for detailed execution traces
-- Modify `max_calls` to control iteration depth
+- Modify `max_calls` in `jarvis.py` to control iteration depth
 
 ## Educational Resources
 
