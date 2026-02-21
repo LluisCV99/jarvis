@@ -2,7 +2,7 @@
 
 A learning experiment exploring the design and orchestration of **multi-agent systems** using multiple Large Language Models (LLMs). Jarvis demonstrates how to build agent architectures where different specialized LLMs collaborate, delegate tasks, and make decisions through a graph-based workflow.
 
-## 🎯 Project Goals
+## Project Goals
 
 This project is an **educational experiment** designed to:
 
@@ -14,7 +14,7 @@ This project is an **educational experiment** designed to:
 - Experiment with **different model providers** (Ollama locally hosted, Google Gemini cloud)
 - Build practical understanding of **agentic workflows** and autonomous reasoning
 
-## 🏗️ Architecture
+## Architecture
 
 ### Core Components
 
@@ -60,7 +60,7 @@ Input
 
 The key learning: **Specialized LLMs for specialized tasks** - Ollama handles orchestration and decision-making, while Google Gemini is used for code generation.
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -104,16 +104,24 @@ Edit `conf.json` to configure your LLM providers:
 {
     "models": {
         "jarvis": {
+            "default": {"ollama" : "gpt-oss:20b"},
             "provider": {
                 "ollama": {
                     "model": "gpt-oss:20b"
+                },
+                "google": {
+                    "model": "gemini-flash-latest"
                 }
             }
         },
         "coder": {
+            "default": {"google" : "gemini-flash-latest"},
             "provider": {
                 "ollama": {
-                    "model": "gpt-oss:20b"
+                    "model": "qwen3-coder:30b"
+                },
+                "google": {
+                    "model": "gemini-flash-latest"
                 }
             }
         }
@@ -121,7 +129,7 @@ Edit `conf.json` to configure your LLM providers:
 }
 ```
 
-## 📚 Learning Outcomes
+## Learning Outcomes
 
 By working through this project, you'll understand:
 
@@ -133,7 +141,7 @@ By working through this project, you'll understand:
 6. **Error Handling**: Graceful failures in distributed agent systems
 7. **Iteration Limits**: Preventing infinite loops in agentic reasoning
 
-## 🔍 How It Works
+## How It Works
 
 1. **Initialization**: Load Jarvis agent with tools and set initial state
 2. **Agent Call**: Send prompt to Jarvis, which analyzes and decides next action
@@ -142,7 +150,7 @@ By working through this project, you'll understand:
 5. **Iteration**: Router decides whether to loop (invoke agent again) or terminate
 6. **Output**: Final response synthesized from the agent's reasoning
 
-## 💡 Key Concepts Explored
+## Key Concepts Explored
 
 - **Agent Autonomy**: Agents make decisions without explicit human direction
 - **Tool-Calling LLMs**: Using function signatures to guide model behavior
@@ -150,7 +158,7 @@ By working through this project, you'll understand:
 - **Fallback Mechanisms**: Error handling and retry logic
 - **Bounded Reasoning**: Iteration limits to ensure termination
 
-## 🛠️ Extensibility
+## Extensibility
 
 Easily extend Jarvis by:
 
@@ -166,14 +174,14 @@ def my_tool(param: str) -> str:
 3. Swapping models in `conf.json`
 4. Adding new specialized agents
 
-## 📝 Notes
+## Notes
 
 - This is an **experiment and learning project**, not production-ready code
 - Ensure Ollama is running before executing
 - Check console output for detailed execution traces
 - Modify `max_calls` to control iteration depth
 
-## 🎓 Educational Resources
+## Educational Resources
 
 This project demonstrates concepts from:
 - Agent-based architecture patterns
@@ -184,4 +192,4 @@ This project demonstrates concepts from:
 
 ---
 
-**Created as a learning experiment to understand multi-LLM agent orchestration** 🤖
+**Created as a learning experiment to understand multi-LLM agent orchestration**
