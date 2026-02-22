@@ -53,16 +53,26 @@ def router(state: JarvisState) -> str:
         return 'tools'
     return 'END'
 
+def check_command(state: JarvisState) -> str:
+    '''Checks if the current message is a command.'''
+    if state['messages'][-1].content.startswith('/'):
+        
+        return 'END'
+    return 'call_jarvis'
+
 
 tool_node = ToolNode(tools)
 
 graph = StateGraph(JarvisState)
+graph.add_node('check_command', check_command)
 graph.add_node('call_jarvis', call_jarvis)
 graph.add_node('tools', tool_node)
+graph.add_conditional_edges('check_command', router, { 'END': END, 
+                                                    'call_jarvis': 'call_jarvis' })
 graph.add_conditional_edges('call_jarvis', router, { 'END': END, 
                                                     'tools': 'tools',
                                                     'call_jarvis': 'call_jarvis' })
-graph.set_entry_point('call_jarvis')
+graph.set_entry_point('check_command')
 
 graph.add_edge('tools', 'call_jarvis')
 
