@@ -1,4 +1,4 @@
-import conf
+import system.conf
 import os
 import shutil
 

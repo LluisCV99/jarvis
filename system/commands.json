@@ -1,0 +1,53 @@
+{
+    "commands": {
+        "/model": {
+            "description": "Change the active model for an agent (jarvis or coder)",
+            "usage": "/model <agent> <provider> <model>",
+            "examples": [
+                "/model jarvis ollama gpt-oss:20b",
+                "/model coder google gemini-flash-latest"
+            ],
+            "args": [
+                "agent",
+                "provider",
+                "model"
+            ]
+        },
+        "/models": {
+            "description": "List available models. Optionally filter by agent and/or provider",
+            "usage": "/models [agent] [provider]",
+            "examples": [
+                "/models",
+                "/models jarvis",
+                "/models coder",
+                "/models jarvis ollama",
+                "/models coder google"
+            ],
+            "args": [
+                "agent",
+                "provider"
+            ],
+            "optional_args": true
+        },
+        "/status": {
+            "description": "Show the current system status: active models, providers, and agent configuration",
+            "usage": "/status",
+            "examples": [
+                "/status"
+            ],
+            "args": []
+        },
+        "/help": {
+            "description": "Show all available commands and their usage",
+            "usage": "/help",
+            "examples": [
+                "/help"
+            ],
+            "args": []
+        }
+    },
+    "agents": [
+        "jarvis",
+        "coder"
+    ]
+}

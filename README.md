@@ -6,7 +6,7 @@ A learning experiment exploring the design and orchestration of **multi-agent sy
 
 > Planned features and improvements:
 
-- [ ] **Model switching from UI/CLI** — Commands to change active models directly from the Chat UI or the terminal without editing `conf.json`
+- [x] **Model switching from UI/CLI** — Slash commands to change active models, list available models, and check system status directly from the Chat UI
 - [ ] **Long-term memory** — Persistent conversation history and context across sessions
 - [ ] **Camera access** — Integrate camera input so Jarvis can process visual information
 
@@ -80,11 +80,15 @@ jarvis/
 ├── jarvis.py          # Main agent: graph definition, state, entry point
 ├── app.py             # Flask server for the web chat UI
 ├── tools.py           # Tool definitions (add_numbers, weather, location, call_coder)
-├── conf.py            # Configuration management (read/update/backup models)
-├── conf.json          # Agent configuration file (providers, models, defaults)
-├── test_conf.py       # Test suite for the configuration module
+├── system/
+│   ├── conf.json      # Agent configuration (providers, models, defaults)
+│   ├── conf.py        # Configuration management (read/update/backup models)
+│   ├── commands.json  # Slash command definitions (usage, args, examples)
+│   └── commands.py    # Command parsing, validation, and execution
 ├── templates/
 │   └── chat.html      # Web chat interface
+├── tests/
+│   └── test_conf.py   # Test suite for the configuration module
 ├── requirements.txt   # Python dependencies
 ├── .env               # Environment variables (API keys, not tracked in git)
 └── .gitignore
@@ -201,6 +205,30 @@ The web interface (`app.py` + `templates/chat.html`) provides a browser-based ch
 - **Responsive layout** — adapts to mobile screens
 - **Send on Enter** — press Enter to send, Shift+Enter for newlines
 
+## Slash Commands
+
+Jarvis supports slash commands typed directly in the chat. Commands are intercepted in `app.py` **before** reaching the LLM, so they execute instantly.
+
+| Command | Usage | Description |
+|---------|-------|-------------|
+| `/model` | `/model <agent> <provider> <model>` | Change the active model for an agent |
+| `/models` | `/models [agent] [provider]` | List available models (optionally filtered) |
+| `/status` | `/status` | Show active model and provider per agent |
+| `/help` | `/help` | Show all available commands |
+
+### Examples
+
+```
+/model jarvis ollama gpt-oss:120b     # Switch Jarvis to a larger model
+/model coder google gemini-flash-latest  # Switch the coder agent
+/models                                 # List all models for all agents
+/models jarvis                          # List only Jarvis's available models
+/models coder google                    # List coder's Google models
+/status                                 # Check what's currently active
+```
+
+Command definitions live in `system/commands.json`. The handler logic in `system/commands.py` uses `system/conf.py` to read and update `system/conf.json`, keeping model data in a single source of truth.
+
 ## Testing
 
 Run the configuration test suite:
@@ -213,12 +241,13 @@ This validates `get_jarvis`, `get_coder`, `update_model`, and `backup/restore` f
 
 ## How It Works
 
-1. **Initialization**: Load Jarvis agent with tools and set initial state
-2. **Agent Call**: Send prompt to Jarvis, which analyzes and decides next action
-3. **Tool Invocation**: If Jarvis requests tool use, execute the appropriate tool
-4. **Delegation**: For `call_coder`, delegate to Google Gemini for specialized tasks
-5. **Iteration**: Router decides whether to loop (invoke agent again) or terminate
-6. **Output**: Final response synthesized from the agent's reasoning
+1. **Input**: User sends a message via the chat UI or CLI
+2. **Command Check**: If the message starts with `/`, it's intercepted and handled as a slash command (no LLM call)
+3. **Agent Call**: Otherwise, send the prompt to Jarvis, which analyzes and decides next action
+4. **Tool Invocation**: If Jarvis requests tool use, execute the appropriate tool
+5. **Delegation**: For `call_coder`, delegate to Google Gemini for specialized tasks
+6. **Iteration**: Router decides whether to loop (invoke agent again) or terminate
+7. **Output**: Final response synthesized from the agent's reasoning
 
 ## Learning Outcomes
 

@@ -1,5 +1,5 @@
 from typing import TypedDict, Annotated, Sequence, Literal
-from langgraph.graph import StateGraph, END
+from langgraph.graph import StateGraph, END, START
 from langgraph.graph.message import add_messages
 from langchain_ollama import ChatOllama
 from langchain_core.messages import BaseMessage, HumanMessage, AIMessage, SystemMessage, ToolMessage
@@ -7,6 +7,7 @@ from operator import add
 from langgraph.prebuilt import ToolNode
 from tools import tools
 from dotenv import load_dotenv
+from system.commands import handle_command
 
 load_dotenv()
 
@@ -16,8 +17,8 @@ class JarvisState(TypedDict):
     max_calls: int
     call_count: int
 
-#ollama = ChatOllama(model="qwen3-coder:30b")
-jarvis = ChatOllama(model="gpt-oss:20b")
+jarvis = ChatOllama(model="qwen3-coder:30b")
+#jarvis = ChatOllama(model="gpt-oss:20b")
 
 
 llm_with_tools = jarvis.bind_tools(tools)
@@ -26,7 +27,7 @@ def call_jarvis(state: JarvisState) -> dict:
     '''Calls the LLM with the current messages and returns the response.'''
 
     try:
-        current_call_count = state.get('call_count', 0)
+        current_call_count = state.get('call_count', 1)
         print(f"Calling Jarvis for the {current_call_count}th time.")
         response = llm_with_tools.invoke(state['messages'])
         return {
@@ -53,16 +54,35 @@ def router(state: JarvisState) -> str:
         return 'tools'
     return 'END'
 
+def start_router(state: JarvisState) -> str:
+    '''Determines the first step based on the initial state.'''
+    message = str(state['messages'][-1].content)
+    print(f"Checking for command in message: {message}")
+    if message.startswith('/'):
+        print("Command detected, routing command...")        
+        return 'command'
+    print("No command detected, starting normal flow...")
+    return "continue"
+
+
+def action_command(state: JarvisState):
+    '''Checks if the current message is a command.'''
+    print(handle_command(str(state['messages'][-1].content)))
+    
+
 
 tool_node = ToolNode(tools)
 
 graph = StateGraph(JarvisState)
+graph.add_node('action_command', action_command)
 graph.add_node('call_jarvis', call_jarvis)
 graph.add_node('tools', tool_node)
+graph.add_conditional_edges(START, start_router, {'command': 'action_command',
+                                                    'continue': 'call_jarvis' })
 graph.add_conditional_edges('call_jarvis', router, { 'END': END, 
                                                     'tools': 'tools',
                                                     'call_jarvis': 'call_jarvis' })
-graph.set_entry_point('call_jarvis')
+#graph.set_entry_point('start_router')
 
 graph.add_edge('tools', 'call_jarvis')
 
@@ -72,7 +92,7 @@ jarvis_compiled = graph.compile()
 if __name__ == "__main__":
     inputs = {
         'messages': [
-            SystemMessage(content="You are Jarvis, a helpful assistant. If you are ask to code or asked about code -> use the 'call_coder' tool to call the expert coder model. Always try to use the tools if they are relevant to the question."), 
+            SystemMessage(content="You are Jarvis, a helpful, funny, precise and concise assistant. If you get asked if someone is gay, say: No, is 'bujarra'. If you are ask to code or asked about code -> use the 'call_coder' tool to call the expert coder model. Always try to use the tools if they are relevant to the question."), 
             HumanMessage(content=input("Ask Jarvis: "))
             ],
         'errors': [],

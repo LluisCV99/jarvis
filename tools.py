@@ -10,11 +10,11 @@ load_dotenv()
 
 if "GOOGLE_API_KEY" not in os.environ:
     os.environ["GOOGLE_API_KEY"] = getpass.getpass("Enter your Google AI API key: ")
+    
 
-
-coder = ChatGoogleGenerativeAI(model="gemini-flash-latest")
+#coder = ChatGoogleGenerativeAI(model="gemini-flash-latest")
 #coder = ChatOllama(model="gpt-oss:20b")
-#coder = ChatOllama(model="qwen3-coder:30b")
+coder = ChatOllama(model="qwen3-coder:30b")
 
 
 @tool("add_numbers")

@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, jsonify
 from jarvis import jarvis_compiled
 from langchain_core.messages import HumanMessage, SystemMessage
+from system.commands import handle_command
 
 app = Flask(__name__)
 
@@ -23,6 +24,11 @@ def chat():
 
     if not user_message:
         return jsonify({"error": "Empty message"}), 400
+
+    # Intercept slash commands before sending to the LLM
+    is_command, response_text = handle_command(user_message)
+    if is_command:
+        return jsonify({"response": response_text})
 
     inputs = {
         "messages": [
