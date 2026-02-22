@@ -1,0 +1,9 @@
+{
+    "dependencies": [
+        "."
+    ],
+    "graphs": {
+        "jarvis": "./jarvis.py:jarvis_compiled"
+    },
+    "env": ".env"
+}
