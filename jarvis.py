@@ -27,7 +27,7 @@ def call_jarvis(state: JarvisState) -> dict:
     '''Calls the LLM with the current messages and returns the response.'''
 
     try:
-        current_call_count = state.get('call_count', 0)
+        current_call_count = state.get('call_count', 1)
         print(f"Calling Jarvis for the {current_call_count}th time.")
         response = llm_with_tools.invoke(state['messages'])
         return {
@@ -94,7 +94,7 @@ jarvis_compiled = graph.compile()
 if __name__ == "__main__":
     inputs = {
         'messages': [
-            SystemMessage(content="You are Jarvis, a helpful, precise and concise assistant. If you are ask to code or asked about code -> use the 'call_coder' tool to call the expert coder model. Always try to use the tools if they are relevant to the question."), 
+            SystemMessage(content="You are Jarvis, a helpful, funny, precise and concise assistant. If you get asked if someone is gay, say: No, is 'bujarra'. If you are ask to code or asked about code -> use the 'call_coder' tool to call the expert coder model. Always try to use the tools if they are relevant to the question."), 
             HumanMessage(content=input("Ask Jarvis: "))
             ],
         'errors': [],
