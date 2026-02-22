@@ -17,8 +17,8 @@ class JarvisState(TypedDict):
     max_calls: int
     call_count: int
 
-#ollama = ChatOllama(model="qwen3-coder:30b")
-jarvis = ChatOllama(model="gpt-oss:20b")
+jarvis = ChatOllama(model="qwen3-coder:30b")
+#jarvis = ChatOllama(model="gpt-oss:20b")
 
 
 llm_with_tools = jarvis.bind_tools(tools)
@@ -74,12 +74,10 @@ def action_command(state: JarvisState):
 tool_node = ToolNode(tools)
 
 graph = StateGraph(JarvisState)
-graph.add_node('start_router', start_router)
 graph.add_node('action_command', action_command)
 graph.add_node('call_jarvis', call_jarvis)
 graph.add_node('tools', tool_node)
-graph.add_conditional_edges(START, start_router, { 'END': END, 
-                                                    'command': 'action_command',
+graph.add_conditional_edges(START, start_router, {'command': 'action_command',
                                                     'continue': 'call_jarvis' })
 graph.add_conditional_edges('call_jarvis', router, { 'END': END, 
                                                     'tools': 'tools',
