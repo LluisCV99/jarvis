@@ -1,15 +1,9 @@
 from flask import Flask, render_template, request, jsonify
-from jarvis import jarvis_compiled
+from jarvis import jarvis_compiled, JARVIS_SYSTEM_PROMPT
 from langchain_core.messages import HumanMessage, SystemMessage
 from system.commands import handle_command
 
 app = Flask(__name__)
-
-SYSTEM_PROMPT = (
-    "You are Jarvis, a helpful assistant. If you are ask to code or asked "
-    "about code -> use the 'call_coder' tool to call the expert coder model. "
-    "Always try to use the tools if they are relevant to the question."
-)
 
 
 @app.route("/")
@@ -32,7 +26,7 @@ def chat():
 
     inputs = {
         "messages": [
-            SystemMessage(content=SYSTEM_PROMPT),
+            SystemMessage(content=JARVIS_SYSTEM_PROMPT),
             HumanMessage(content=user_message),
         ],
         "errors": [],

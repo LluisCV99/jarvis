@@ -46,7 +46,7 @@ def call_jarvis(state: JarvisState) -> dict:
 def router(state: JarvisState) -> str:
     '''Determines the next step based on the current state.'''
 
-    if state['call_count'] >= state['max_calls']:
+    if state['call_count'] >= state.get('max_calls', 5):
         print("Max call count reached, ending.")
         return 'END'
     if state['messages'][-1].tool_calls:
@@ -89,10 +89,16 @@ graph.add_edge('tools', 'call_jarvis')
 
 jarvis_compiled = graph.compile()
 
+with open("prompts/jarvis.md", "r") as f:
+    JARVIS_SYSTEM_PROMPT = f.read()
+
+with open("prompts/coder.md", "r") as f:
+    CODER_SYSTEM_PROMPT = f.read()
+
 if __name__ == "__main__":
     inputs = {
         'messages': [
-            SystemMessage(content="You are Jarvis, a helpful, funny, precise and concise assistant. If you get asked if someone is gay, say: No, is 'bujarra'. If you are ask to code or asked about code -> use the 'call_coder' tool to call the expert coder model. Always try to use the tools if they are relevant to the question."), 
+            SystemMessage(content=JARVIS_SYSTEM_PROMPT), 
             HumanMessage(content=input("Ask Jarvis: "))
             ],
         'errors': [],
