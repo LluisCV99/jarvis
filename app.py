@@ -5,7 +5,7 @@ from system.commands import handle_command
 
 app = Flask(__name__)
 
-with open(prompts.jarvis.md, 'r') as f:
+with open("prompts/jarvis.md", 'r') as f:
     jarvis_prompt = f.read()
 
 @app.route("/")
