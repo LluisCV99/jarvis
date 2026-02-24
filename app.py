@@ -5,6 +5,8 @@ from system.commands import handle_command
 
 app = Flask(__name__)
 
+with open(prompts.jarvis.md, 'r') as f:
+    jarvis_prompt = f.read()
 
 @app.route("/")
 def index():
@@ -26,6 +28,7 @@ def chat():
 
     inputs = {
         "messages": [
+            SystemMessage(content=jarvis_prompt),
             SystemMessage(content=JARVIS_SYSTEM_PROMPT),
             HumanMessage(content=user_message),
         ],
