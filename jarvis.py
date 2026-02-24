@@ -75,7 +75,7 @@ def call_jarvis(state: JarvisState) -> dict:
 def router(state: JarvisState) -> str:
     '''Determines the next step based on the current state.'''
 
-    if state['call_count'] >= state['max_calls']:
+    if state['call_count'] >= state.get('max_calls', 5):
         print("Max call count reached, ending.")
         return 'END'
 
@@ -140,11 +140,17 @@ with open("prompts/jarvis.md", 'r') as f:
 
 with open("prompts/coder.md", 'r') as f:
     coder_prompt = f.read() 
+with open("prompts/jarvis.md", "r") as f:
+    JARVIS_SYSTEM_PROMPT = f.read()
+
+with open("prompts/coder.md", "r") as f:
+    CODER_SYSTEM_PROMPT = f.read()
 
 if __name__ == "__main__":
     inputs = {
         'messages': [
             SystemMessage(content=jarvis_prompt), 
+            SystemMessage(content=JARVIS_SYSTEM_PROMPT), 
             HumanMessage(content=input("Ask Jarvis: "))
             ],
         'errors': [],
