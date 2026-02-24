@@ -5,12 +5,8 @@ from system.commands import handle_command
 
 app = Flask(__name__)
 
-SYSTEM_PROMPT = (
-    "You are Jarvis, a helpful assistant. If you are ask to code or asked "
-    "about code -> use the 'call_coder' tool to call the expert coder model. "
-    "Always try to use the tools if they are relevant to the question."
-)
-
+with open(prompts.jarvis.md, 'r') as f:
+    jarvis_prompt = f.read()
 
 @app.route("/")
 def index():
@@ -32,7 +28,7 @@ def chat():
 
     inputs = {
         "messages": [
-            SystemMessage(content=SYSTEM_PROMPT),
+            SystemMessage(content=jarvis_prompt),
             HumanMessage(content=user_message),
         ],
         "errors": [],

@@ -51,7 +51,7 @@ def call_jarvis(state: JarvisState) -> dict:
             return {
                 'messages': [AIMessage(content=clean_response)],
                 'coder_messages': [
-                    SystemMessage(content=CODER_SYSTEM_PROMPT), 
+                    SystemMessage(content=coder_prompt), 
                     HumanMessage(content=clean_response)
                 ],
                 'call_count': current_call_count + 1,
@@ -135,10 +135,16 @@ graph.add_edge('call_coder', 'call_jarvis')
 
 jarvis_compiled = graph.compile()
 
+with open("prompts/jarvis.md", 'r') as f:
+    jarvis_prompt = f.read()
+
+with open("prompts/coder.md", 'r') as f:
+    coder_prompt = f.read() 
+
 if __name__ == "__main__":
     inputs = {
         'messages': [
-            SystemMessage(content="You are Jarvis, a helpful, funny, precise and concise assistant. If you get asked if someone is gay, say: No, is 'bujarra'. If you are ask to code or asked about code -> use the 'call_coder' tool to call the expert coder model. Always try to use the tools if they are relevant to the question."), 
+            SystemMessage(content=jarvis_prompt), 
             HumanMessage(content=input("Ask Jarvis: "))
             ],
         'errors': [],
