@@ -2,28 +2,27 @@ from typing import TypedDict, Annotated, Sequence, Literal
 from langgraph.graph import StateGraph, END, START
 from langgraph.graph.message import add_messages
 from langchain_ollama import ChatOllama
+from langchain_openai import ChatOpenAI
+from langgraph_supervisor import create_supervisor
+from langgraph.prebuilt import create_react_agent
 from langchain_core.messages import BaseMessage, HumanMessage, AIMessage, SystemMessage, ToolMessage
 from operator import add
 from langgraph.prebuilt import ToolNode
-from tools import tools
+from supervisor.tools import tools
 from dotenv import load_dotenv
 from system.commands import handle_command
+from system.conf import get_jarvis
 
 load_dotenv()
 
 class JarvisState(TypedDict):
     messages: Annotated[Sequence[BaseMessage], add_messages]
-    coder_messages: Sequence[BaseMessage]
     errors: Annotated[Sequence[str], add]
     max_calls: int
     call_count: int
     next_call: Literal['call_jarvis', 'call_coder', 'END']
 
-jarvis = ChatOllama(model="qwen3-coder:30b")
-#jarvis = ChatOllama(model="gpt-oss:20b")
-
-coder = ChatOllama(model="qwen3-coder:30b")
-
+jarvis = ChatOllama(model=get_jarvis())
 
 llm_with_tools = jarvis.bind_tools(tools)
 
@@ -140,17 +139,11 @@ with open("prompts/jarvis.md", 'r') as f:
 
 with open("prompts/coder.md", 'r') as f:
     coder_prompt = f.read() 
-with open("prompts/jarvis.md", "r") as f:
-    JARVIS_SYSTEM_PROMPT = f.read()
-
-with open("prompts/coder.md", "r") as f:
-    CODER_SYSTEM_PROMPT = f.read()
 
 if __name__ == "__main__":
     inputs = {
         'messages': [
             SystemMessage(content=jarvis_prompt), 
-            SystemMessage(content=JARVIS_SYSTEM_PROMPT), 
             HumanMessage(content=input("Ask Jarvis: "))
             ],
         'errors': [],

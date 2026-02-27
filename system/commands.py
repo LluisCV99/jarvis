@@ -80,7 +80,7 @@ def get_status():
         lines.append(f"**{agent_name}**")
         lines.append(f"  - Provider: `{active.get('provider', 'N/A')}`")
         lines.append(f"  - Model: `{active.get('model', 'N/A')}`")
-        lines.append(f"  - Status: 🟢 Active")
+        lines.append("  - Status: 🟢 Active")
         lines.append("")
 
     return "\n".join(lines)

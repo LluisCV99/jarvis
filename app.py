@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, jsonify
-from jarvis import jarvis_compiled, JARVIS_SYSTEM_PROMPT
+from supervisor.jarvis import jarvis_compiled
 from langchain_core.messages import HumanMessage, SystemMessage
 from system.commands import handle_command
 
@@ -29,7 +29,6 @@ def chat():
     inputs = {
         "messages": [
             SystemMessage(content=jarvis_prompt),
-            SystemMessage(content=JARVIS_SYSTEM_PROMPT),
             HumanMessage(content=user_message),
         ],
         "errors": [],

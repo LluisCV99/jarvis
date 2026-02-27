@@ -5,3 +5,5 @@ lang-env/
 lang_env/
 venv/
 .langgraph_api/
+venv/
+qwen/
