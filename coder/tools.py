@@ -1,5 +1,7 @@
 from langchain_core.tools import tool
 from langchain_community.tools import DuckDuckGoSearchRun
+import os
+import subprocess
 
 @tool("read_file")
 def read_file(file_path: str) -> str:

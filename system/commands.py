@@ -1,6 +1,6 @@
 import json
 import os
-from system.conf import get_all_agents, get_available_models, update_model
+from system import conf
 
 COMMANDS_PATH = os.path.join(os.path.dirname(__file__), "commands.json")
 
@@ -16,7 +16,7 @@ def get_commands():
 
 def list_all_models():
     """Return a formatted string of all available models grouped by agent and provider."""
-    agents = get_all_agents()
+    agents = conf.get_all_agents()
     lines = ["📋 **Available Models:**\n"]
 
     for agent_name in VALID_AGENTS:
@@ -39,7 +39,7 @@ def list_models_by_agent(agent: str):
     if agent not in VALID_AGENTS:
         return f"❌ Unknown agent `{agent}`. Available agents: {', '.join(VALID_AGENTS)}"
 
-    models = get_available_models(agent=agent)
+    models = conf.get_available_models(agent=agent)
     lines = [f"📋 **Models for {agent}:**\n"]
     for provider, model_list in models.items():
         lines.append(f"  **{provider}**")
@@ -56,7 +56,7 @@ def list_models_by_agent_and_provider(agent: str, provider: str):
     if agent not in VALID_AGENTS:
         return f"❌ Unknown agent `{agent}`. Available agents: {', '.join(VALID_AGENTS)}"
 
-    models = get_available_models(agent=agent)
+    models = conf.get_available_models(agent=agent)
     if provider not in models:
         available = ", ".join(models.keys())
         return f"❌ Unknown provider `{provider}` for `{agent}`. Available providers: {available}"
@@ -69,7 +69,7 @@ def list_models_by_agent_and_provider(agent: str, provider: str):
 
 def get_status():
     """Return the current system status: active models, providers, and config."""
-    agents = get_all_agents()
+    agents = conf.get_all_agents()
     lines = ["📊 **System Status:**\n"]
 
     for agent_name in VALID_AGENTS:
@@ -80,10 +80,44 @@ def get_status():
         lines.append(f"**{agent_name}**")
         lines.append(f"  - Provider: `{active.get('provider', 'N/A')}`")
         lines.append(f"  - Model: `{active.get('model', 'N/A')}`")
+        lines.append(f"  - Reasoning: `{agent_conf.get('reasoning', 'medium')}`")
         lines.append("  - Status: 🟢 Active")
         lines.append("")
 
     return "\n".join(lines)
+
+
+def get_reasoning_status():
+    """Return a formatted string of the current reasoning level for each agent."""
+    agents = conf.get_all_agents()
+    levels = conf.get_reasoning_levels()
+    lines = ["🧠 **Reasoning Levels:**\n"]
+    lines.append(f"Available levels: {', '.join(f'`{l}`' for l in levels.keys())}\n")
+
+    for agent_name in VALID_AGENTS:
+        if agent_name not in agents:
+            continue
+        level = agents[agent_name].get("reasoning", "medium")
+        budget = levels.get(level, "?")
+        lines.append(f"**{agent_name}**: `{level}` ({budget} tokens)")
+
+    return "\n".join(lines)
+
+
+def change_reasoning(agent: str, level: str):
+    """Change the reasoning level for a given agent. Returns a confirmation or error message."""
+    agent = agent.lower()
+    level = level.lower()
+
+    if agent not in VALID_AGENTS:
+        return f"❌ Unknown agent `{agent}`. Available agents: {', '.join(VALID_AGENTS)}"
+
+    levels = conf.get_reasoning_levels()
+    if level not in levels:
+        return f"❌ Unknown level `{level}`. Available: {', '.join(f'`{l}`' for l in levels.keys())}"
+
+    conf.update_reasoning(agent, level)
+    return f"✅ `{agent}` reasoning set to `{level}` ({levels[level]} tokens)"
 
 
 def change_model(agent: str, provider: str, model: str):
@@ -94,7 +128,7 @@ def change_model(agent: str, provider: str, model: str):
     if agent not in VALID_AGENTS:
         return f"❌ Unknown agent `{agent}`. Available agents: {', '.join(VALID_AGENTS)}"
 
-    models = get_available_models(agent=agent)
+    models = conf.get_available_models(agent=agent)
 
     if provider not in models:
         available = ", ".join(models.keys())
@@ -104,7 +138,7 @@ def change_model(agent: str, provider: str, model: str):
         available = ", ".join(f"`{m}`" for m in models[provider])
         return f"❌ Model `{model}` not found for `{agent}` on `{provider}`. Available: {available}"
 
-    update_model(agent, provider, model)
+    conf.update_model(agent, provider, model)
     return f"✅ `{agent}` model changed to `{model}` on `{provider}`"
 
 
@@ -152,6 +186,10 @@ def handle_command(raw_input: str):
 
     elif cmd == "/help":
         return True, get_help()
+    elif cmd == "/reason":
+        if len(parts) >= 3:
+            return True, change_reasoning(parts[1], parts[2])
+        return True, get_reasoning_status()
 
     else:
         return True, f"❌ Unknown command `{cmd}`. Type `/help` to see available commands."

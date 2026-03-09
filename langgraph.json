@@ -3,7 +3,7 @@
         "."
     ],
     "graphs": {
-        "jarvis": "./jarvis.py:jarvis_compiled"
+        "jarvis": "./supervisor/jarvis.py:jarvis_compiled"
     },
     "env": ".env"
 }

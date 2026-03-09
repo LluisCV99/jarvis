@@ -1,61 +1,22 @@
-from typing import TypedDict, Annotated, Sequence, Literal
-from langgraph.graph import StateGraph, END, START
-from langgraph.graph.message import add_messages
-from langchain_ollama import ChatOllama
-from langchain_openai import ChatOpenAI
-from langchain_core.messages import BaseMessage, HumanMessage, AIMessage, SystemMessage, ToolMessage
-from operator import add
-from langgraph.prebuilt import ToolNode
+from langgraph.prebuilt import create_react_agent
 from coder.tools import tools
-from dotenv import load_dotenv
-from system.conf import get_coder
+from system.conf import get_llm
 
-load_dotenv()
+with open("coder/prompts/coder.md", "r") as f:
+    coder_prompt = f.read()
 
-class CoderState(TypedDict):
-    messages: Annotated[Sequence[BaseMessage], add_messages]
-    errors: Annotated[Sequence[str], add]
-    max_calls: int
-    call_count: int
+coder_agent = create_react_agent(
+    model=get_llm("coder"),
+    tools=tools,
+    name="coder",
+    prompt=coder_prompt,
+)
 
-coder = ChatOllama(model=get_coder())
+if __name__ == "__main__":
+    from langchain_core.messages import HumanMessage
 
-coder_with_tools = coder.bind_tools(tools)
-
-def call_coder(state: CoderState) -> dict:
-
-    current_call_count = state.get('call_count', 1)
-    print(f"Calling Coder Agent for the {current_call_count}th time.")
-    try:
-        response = coder_with_tools.invoke(state['messages'])
-        return {
-            'messages': [response],
-            'call_count': current_call_count + 1,
-        }
-    except Exception as e:
-        errors = (str("Error calling Coder Agent: " + str(e)))
-        print(errors)
-        return {
-            'errors': [errors],
-            'call_count': current_call_count + 1,
-        }
-
-tool_node = ToolNode(tools)
-
-graph = StateGraph(CoderState)
-graph.add_node('call_coder', call_coder)
-graph.add_node('tools', tool_node)
-graph.add_conditional_edges(START, start_router, {'command': 'action_command',
-                                                    'continue': 'call_jarvis' })
-graph.add_conditional_edges('call_jarvis', router, { 'END': END, 
-                                                    'tools': 'tools',
-                                                    'call_coder': 'call_coder',
-                                                    'call_jarvis': 'call_jarvis' })
-#graph.set_entry_point('start_router')
-
-graph.add_edge('tools', 'call_jarvis')
-graph.add_edge('call_coder', 'call_jarvis')
-
-
-coder_compiled = graph.compile()
-
+    user_input = input("Ask Coder: ")
+    result = coder_agent.invoke({
+        "messages": [HumanMessage(content=user_input)],
+    })
+    print(result["messages"][-1].content)

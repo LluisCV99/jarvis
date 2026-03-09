@@ -44,6 +44,20 @@
                 "/help"
             ],
             "args": []
+        },
+        "/reason": {
+            "description": "Show or change the reasoning level for an agent (off, low, medium, high)",
+            "usage": "/reason [agent] [level]",
+            "examples": [
+                "/reason",
+                "/reason jarvis high",
+                "/reason coder off"
+            ],
+            "args": [
+                "agent",
+                "level"
+            ],
+            "optional_args": true
         }
     },
     "agents": [

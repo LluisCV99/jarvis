@@ -10,3 +10,4 @@ aiohttp>=3.13.3
 httpx>=0.28.1
 langsmith>=0.1.0
 flask>=3.0.0
+langgraph-supervisor>=0.0.31
